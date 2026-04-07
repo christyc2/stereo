@@ -11,11 +11,13 @@ env/
 venv/
 .venv/
 ENV/
-
-# Conda-specific local state
 conda-meta/
 .conda/
 .mamba/
 
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
 etc/
 data/
+__pycache__/

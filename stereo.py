@@ -24,8 +24,28 @@ def get_ncc_descriptors(img, patchsize):
     If the norm of the vector is <1e-6 before normalizing, zero out the vector.
 
     '''
-    pass
+    HEIGHT, WIDTH, CHANNELS = len(img), len(img[0]), len(img[0, 0])
+    normalized = np.zeros((HEIGHT, WIDTH, (CHANNELS * patchsize ** 2)), dtype=np.float32)
+    
+    # (1) take a patchsize x patchsize window around the pixel,
+    patches = np.lib.stride_tricks.sliding_window_view(img, (patchsize, patchsize), axis=(0, 1))
 
+    # (2) compute and subtract the mean for every channel
+    means = np.mean(patches, axis=(3, 4), keepdims=True)
+    descriptors = patches - means
+    
+    # (3) flatten it into a single vector
+    descriptors = descriptors.reshape(HEIGHT - patchsize + 1, WIDTH - patchsize + 1, (CHANNELS * patchsize ** 2))
+
+    # (4) normalize the vector by dividing by its L2 norm
+    norms = np.linalg.norm(descriptors, axis=2, keepdims=True)
+    results = np.where(norms >= 1e-6, descriptors / norms, 0)
+    
+    # (5) store it in the (i,j)th location in the output
+    p = patchsize//2
+    normalized[p : p + results.shape[0], p : p + results.shape[1], :] = results
+    
+    return normalized
 
 def compute_ncc_vol(img_right, img_left, patchsize, dmax):
     '''
@@ -45,7 +65,17 @@ def compute_ncc_vol(img_right, img_left, patchsize, dmax):
 
     Your code should call get_ncc_descriptors to compute the descriptors once.
     '''
-    pass
+    H, W, C = img_right.shape
+    ncc_vol = np.zeros((dmax, H, W), dtype=np.float32)
+
+    descriptors_right = get_ncc_descriptors(img_right, patchsize)
+    descriptors_left = get_ncc_descriptors(img_left, patchsize)
+
+    for d in range(dmax):
+        ncc_vol[d, :, : W - d] = np.sum(descriptors_right[:, : W - d, :] * descriptors_left[:, d :, :], axis=2)
+    return ncc_vol
+
+
 
 def get_disparity(ncc_vol):
     '''
@@ -57,7 +87,8 @@ def get_disparity(ncc_vol):
 
     the chosen disparity for each pixel should be the one with the largest score for that pixel
     '''
-    pass
+    disparity = np.argmax(ncc_vol, axis=0)
+    return disparity
 
 
 
