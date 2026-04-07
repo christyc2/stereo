@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Conda / Python environments
+env/
+venv/
+.venv/
+ENV/
+
+# Conda-specific local state
+conda-meta/
+.conda/
+.mamba/
+
+etc/
+data/
